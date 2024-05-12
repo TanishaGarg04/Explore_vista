@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Destinations</title>
+    <!-- Favicon Icon -->
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+
+     <!-- Font Awesome CDN -->
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+ 
+     <!-- Links To All Style Files -->
+     <link rel="stylesheet" href="./main.css">
+</head>
+<style>
+    main{
+        position: relative;
+    }
+    .btn-small{
+        background-image: none;
+        background-color: var(--primary);
+    }
+
+    .destinations{
+        padding-block: 2rem;
+        /* display: grid;
+        grid-template-columns:1fr 1fr 1fr 1fr;
+        grid-template-areas: 
+        "toolbar toolbar toolbar toolbar"
+        "sidebar maincontent maincontent maincontent"; */
+        gap:3rem 2rem;
+    }
+    .toolbar{
+        width:100%;
+        grid-area: toolbar;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 2rem;
+        /* border-bottom: 1px solid var(--background-light); */
+    }
+    
+    .col-btns{
+        display: flex;
+    }
+    .col-btn{
+        margin-left: 0.5rem;
+        color:var(--background-light);
+        background-color: transparent;
+        border:2px solid var(--background-light);
+    }
+    .col-active{
+        color:var(--white);
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    
+    .main-content{
+        grid-area: maincontent;
+        position: relative;
+        min-height: 50vh;
+        padding: 1rem;
+        /* background-color: var(--background-light); */
+        border-radius: 2rem;
+        border: 8px solid var(--white);
+    }
+    #blank{
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 2rem 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+    }
+    #loader{
+        display:none;
+        width: 150px;
+        height: 150px;
+        position: absolute;
+        top: 50%;
+        left:50%;
+        transform: translate(-50%,-50%);
+        z-index: 10000;
+    }
+    .destination-card{
+        background-color: var(--background-dark);
+        overflow: hidden;
+        border-radius: 2rem;
+        border:2px solid var(--background-light)
+    }
+    
+    .destination-card img{
+        object-fit: cover;
+        max-height: 250px;
+        height: 200px;
+        width: 100%;
+    }
+    .destination-card> div{
+        padding:1rem;
+        position: relative;
+    }
+    .destination-card>div .fa-plane-departure{
+        position: absolute;
+        bottom: -25%;
+        right: -2%;
+        font-size: 6rem;
+        color:var(--background-light);
+        opacity: 0.2;
+    }
+    .destination-card> div h4{
+        display: inline;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .destination-rating{
+        display:inline;
+        color:var(--highlight);
+        font-size: 0.75rem;
+    }
+    .destination-card> div p{
+        color:var(--white-light);
+        margin-bottom: 1rem;
+    }
+    .destination-card>div p span{
+        font-size: 2rem;
+        font-weight: bolder;
+        color:var(--highlight);
+    }
+
+    .view-details{
+        color:var(--primary);
+        background-color: transparent;
+        border:1px solid var(--primary);
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Destination Modal Styling */
+
+    #destination-dialog{
+        max-height: 80vh;
+        width:min(60rem,100%);
+        position: fixed;
+        top:50%;
+        left:50%;
+        transform: translate(-50%,-50%);
+        background-color: var(--background-dark);
+        padding:2rem;
+        border-radius: 2rem;
+        border:none;
+        border:2px solid var(--background-light);
+        display:none;/* toggling on off using js*/
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-areas: 
+        "back back back back"
+        "mainImage mainImage mainImage mainImage"
+        "imgRow imgRow imgRow imgRow"
+        "Desc Desc Desc Desc"
+        "Act Act Act Act"
+        "Att Att Att Att"
+        "back2 back2 back2 back2";
+        gap:1rem;
+        overflow-x: hidden;
+    }
+    #destination-dialog::backdrop{
+       background:#0008; 
+    }
+    #destination-dialog::-webkit-scrollbar{
+        width:0.5em;
+    }
+    #destination-dialog::-webkit-scrollbar-track{
+        background-color: transparent !important;
+        margin-block: 3em;
+        /* border: 20px solid transparent; */
+        background-clip: content-box;
+    }
+    #destination-dialog::-webkit-scrollbar-thumb{
+        background-color: var(--background-light);
+        border-radius: 50px;
+        border:4px solid transparent !important;
+    }
+    .close-destination:first-of-type{
+        grid-area: back;
+        grid-column: span 1;
+    }
+    .close-destination:last-of-type{
+        grid-area: back2;
+        grid-column: span 1;
+    }
+
+    #destination-img-container{
+        width:100%;
+        grid-area: mainImage;
+        height: 30rem;
+        border:1rem;
+        overflow: hidden !important;
+    }
+    #destination-img-container img{
+        height: 30rem;
+        width: 100%;
+    }
+    #destination-img-container img,
+    #destination-img-row img{
+        object-fit: cover;
+        border-radius: 2rem;
+    }
+    #destination-img-row{
+        grid-area:imgRow;
+        display:flex;
+        align-items: center;
+        justify-content: space-between;
+        gap:1rem;
+        margin-bottom: 2rem;
+    }
+    #destination-img-row img{
+        height: 200px;
+        width: 24%;
+        border-radius: 1rem;
+    }
+    #destination-description{
+        grid-area: Desc;
+        margin-bottom: 1rem;
+    }
+    #destination-description>*{
+        margin-block:0.5rem;
+    }
+    #destination-activity{
+        grid-area: Act;
+        margin-bottom: 1rem;
+    }
+    #destination-attractions{
+        grid-area: Att;
+        margin-bottom: 1rem;
+    }
+    #destination-activity>h4,
+    #destination-attractions>h4{
+        margin-bottom: 1rem;
+    }
+    #destination-activity>div,
+    #destination-attractions>div{
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap:1rem;
+    }
+    
+    #destination-activity>div>*,
+    #destination-attractions>div>*{
+        margin-right: 0.5rem;
+    }
+    #destination-activity>div:last-child,
+    #destination-attractions>div:last-child{
+        margin:0;
+    }
+    .dest-card{
+        width:33%;
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+    .dest-card h5{
+        opacity: 0;
+        cursor: pointer;
+        transition:opacity 1s ease-out;
+    }
+    .dest-card:hover h5{
+        opacity: 1;
+        position: absolute;
+        top: 50%;
+        left:50%;
+        transform:translate(-50%, -50%) !important;
+        z-index: 1;
+        color:var(--white);
+        background-color: #0009;
+        display:grid;
+        place-items: center;
+        overflow: hidden !important;
+        padding:1rem;
+        border-radius: 1rem;
+    }
+
+    #destination-activity>div img,
+    #destination-attractions>div img{
+        width: 100%;
+        height: 100%;
+        border-radius: 1rem;
+        object-fit: cover;
+    }
+    
+    
+    /* Pagination Buttons Styling */
+    #pagination-container{
+        display:flex;
+        align-items: center;
+        justify-content: center;
+        border-top: 1px solid var(--background-light);
+        padding-top: 2rem;
+    }
+    #pagination-container .btn-small{
+        color:var(--background-light);
+        background-color: transparent;
+        border:2px solid var(--background-light);
+        width: 4rem;
+        background-image:none;
+        /* border:1px solid var(--primary); */
+    }
+    #pagination-container>*{
+        margin-inline: 0.25rem;
+    }
+    #pagination-container .btn-small.page-active{
+        color:var(--white);
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+</style>
+<body>
+    <header>
+        <nav class="container">
+            
+            <div id="login-container">
+                <a href="./login.html" id="loginBtn"><i class="fa-solid fa-user" id="login-btn"></i></a>
+        
+            </div>
+        </nav>
+    </header>
+    <main>
+        <dialog id="destination-dialog">
+            <button id="close-destination" class="btn-small view-details "><i class="fa-solid fa-arrow-left" ></i> Back</button>
+            <div id="destination-img-container">
+                <!-- Main Image of City goes here -->
+            </div>
+            <id id="destination-img-row">
+                <!-- Row of 4 images of city -->
+            </id>
+            <div id="destination-description">
+                <!-- All Description of the city goes here -->
+            </div>
+            <div id="destination-activity">
+                <!-- All the activity Images goes here -->
+            </div>
+            <div id="destination-attractions"></div>
+        </dialog>
+        <section class="container destinations">
+            <!-- Copy this searchbox If you want to use it somewhere else -->
+            <div class="toolbar">
+                <div class="searchbox" id="mainsearch">
+                    <input  type="text" placeholder="Enter your destination">
+                    <button class="btn-small">Search</button>
+                </div>
+                <div class="col-btns">
+                    <button class="col-btn btn-small col-active" id="2-col">2</button>
+                    <button class="col-btn btn-small" id="3-col">3</button>
+                </div>
+            </div>
+           
+            <div class="main-content">
+                <img src="./assets/Loader.svg" alt="loader" id="loader">
+                <div id="blank">
+                    <!-- all destination deta append here -->
+                </div>
+                <div id="pagination-container"></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <section class="articles"></section>
+        <div class="container">
+          <h1>Get ahead with early<span>Update</span>on our packages</h1>
+          <!-- Copy this searchbox If you want to use it somewhere else -->
+            <div class="searchbox">
+                <input  type="text" placeholder="Enter your email">
+                <button class="btn" id="cta">Get Started</button>
+            </input>
+            </div>
+            <hr>
+            <div class="footer">
+           
+                <p><i class="fa-regular fa-copyright"></i> 2024 Explore Vista</p>
+            </div>
+            <div class="socials">
+                <div class="social">
+                    <a href="https://www.instagram.com/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+                <div class="social">
+                    <a href="https://twitter.com/" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+                <div class="social">
+                    <a href="https://www.facebook.com/" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+<script src="main.js"></script>
+<script>
+    let main_container = document.querySelector("#blank");
+let loader = document.getElementById("loader");
+let col2 = document.getElementById("2-col");
+let col3 = document.getElementById("3-col");
+let searchinp = document.querySelector("#mainsearch>input");
+let searchbtn = document.querySelector("#mainsearch>button");
+let paginationContainer = document.querySelector("#pagination-container");
+let lowToHighBtn = document.querySelector("#lowToHigh");
+let highToLowBtn = document.querySelector("#highToLow");
+let filterByCountry = document.querySelector("#country");
+let filterByRating = Array.from(
+  document.querySelectorAll(".filter-rating>div")
+);
+let filterByPrice = Array.from(
+  document.querySelectorAll(".filter-price>.filter-price-option")
+);
+let destinationDialog = document.querySelector("#destination-dialog");
+let closeDestinationBtn = document.querySelector("#close-destination");
+let destinationImgContainer = document.querySelector(
+  "#destination-img-container"
+);
+let destinationImgRow = document.querySelector("#destination-img-row");
+let destinationDescription = document.querySelector("#destination-description");
+let destinationActivity = document.querySelector("#destination-activity");
+let destinationAttractions = document.querySelector("#destination-attractions");
+
+let baseURL = `https://mock-every-sunday-server.onrender.com/`;
+let destinationURL = `${baseURL}destinations`;
+let limit = 12;
+let totalCount, numPages, imageUrl;
+
+// All Event Listeners go here
+// searchbtn.addEventListener("click", fetchDestination);
+window.addEventListener("load", () => fetchAllDestinations(1));
+// fetchAllDestinations(1)
+searchinp.addEventListener("input", (e) => {
+  e.preventDefault();
+  fetchBySearch(1);
+});
+lowToHighBtn.addEventListener("click", () => filterPriceSort("asc", 1));
+highToLowBtn.addEventListener("click", () => filterPriceSort("desc", 1));
+filterByCountry.addEventListener("change", () =>
+  filterDestinationsByCountry(1)
+);
+filterByRating.forEach((ratingFilter) => {
+  ratingFilter.addEventListener("click", () => {
+    // console.log(ratingFilter.getAttribute("data"));
+    filterDestinationsByRating(ratingFilter.getAttribute("data"), 1);
+  });
+});
+filterByPrice.forEach((priceRange) => {
+  priceRange.addEventListener("click", () => {
+    filterDestinationsByPrice(priceRange.getAttribute("data-value"), 1);
+  });
+});
+col2.addEventListener("click", () => {
+  main_container.style.gridTemplateColumns = "1fr 1fr";
+  col3.classList.remove("col-active");
+  col2.classList.add("col-active");
+});
+col3.addEventListener("click", () => {
+  main_container.style.gridTemplateColumns = "1fr 1fr 1fr";
+  col2.classList.remove("col-active");
+  col3.classList.add("col-active");
+});
+closeDestinationBtn.addEventListener("click", () => {
+  destinationDialog.close();
+  destinationDialog.style.display = "none";
+});
+
+//This function fetches all the destinations with a specified query string
+async function fetchAllDestinations(page) {
+  try {
+    main_container.innerHTML = "";
+    paginationContainer.innerHTML = "";
+    loader.style.display = "block";
+    let url = `${destinationURL}?_page=${page}&_limit=${limit}`;
+    let res = await fetch(url);
+    totalCount = res.headers.get("X-Total-Count");
+    numPages = Math.ceil(totalCount / limit);
+    let data = await res.json();
+    displayDestinations(data);
+    createPaginationBtns(numPages, page);
+  } catch (err) {
+    console.log(err);
+  }
+}
+async function fetchDestination() {
+  try {
+  } catch (err) {
+    console.log(err);
+  }
+}
+// This function creates pagination btns
+function createPaginationBtns(num, currNum) {
+  setTimeout(function () {
+    paginationContainer.innerHTML = "";
+    for (let i = 0; i < num; i++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn-small");
+      if (i == currNum - 1) {
+        btn.classList.add("page-active");
+      }
+      btn.innerText = i + 1;
+      btn.addEventListener("click", () => {
+        fetchAllDestinations(i + 1);
+      });
+      paginationContainer.append(btn);
+    }
+  }, 1500);
+}
+
+// display function for destination
+function displayDestinations(arr) {
+  setTimeout(() => {
+    loader.style.display = "none";
+    main_container.innerHTML = "";
+    arr.forEach((element) => {
+      main_container.append(createCard(element));
+    });
+  }, 1500);
+}
+
+// This funciton creates individual cards
+function createCard(item) {
+  let card = document.createElement("div");
+  card.classList.add("destination-card");
+
+  let img = document.createElement("img");
+  img.setAttribute("src", item.img);
+
+  let content = document.createElement("div");
+  content.innerHTML = `<i class="fa-solid fa-plane-departure"></i>`;
+
+  let title = document.createElement("h4");
+  title.innerText = item.name;
+
+  let rating = document.createElement("div");
+  rating.classList.add("destination-rating");
+  let r = +item.rating;
+  if (r >= 4) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)  `;
+  } else if (r < 4 && r >= 3) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  } else if (r < 3 && r >= 2) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  } else if (r < 2 && r >= 1) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  }
+
+  let price = document.createElement("p");
+  price.innerHTML = `<span>$${item.estimatedCost}</span> per person`;
+
+  let viewDetailsBtn = document.createElement("button");
+  viewDetailsBtn.innerText = "View Details";
+  viewDetailsBtn.classList.add("btn-small", "view-details");
+  viewDetailsBtn.addEventListener("click", function () {
+    createDetails(item);
+    destinationDialog.style.display = "grid";
+    destinationDialog.showModal();
+  });
+
+  let AddToCart = document.createElement("button");
+  AddToCart.innerText = "Add To Cart";
+  AddToCart.classList.add("btn-small", "atc");
+  AddToCart.addEventListener("click", function () {
+    // get the login user from local storage(the user that is logged in)
+    let userId = JSON.parse(localStorage.getItem("userId"));
+
+    if (userId) {
+      // check if user.cart exists// if not create a new cart and push city to it, else push city to old cart
+      let user = getUser(userId);
+      user
+        .then((data) => {
+          // console.log(data[0]);
+          let userObj = data[0];
+          let userCart;
+          if (userObj.cart) {
+            let flag = false;
+            userObj.cart.forEach((cartItem) => {
+              if (cartItem.city == item.name) flag = true;
+            });
+            if (flag) {
+              // If cartItem does exist display message
+              displayMessage("Already In Cart", "warning");
+            } else {
+              // If cartItem doesn't exist add it to cart
+              userObj.cart.push({
+                city: item.name,
+                numOfDays: 1,
+                numOfPeople: 1,
+                tier: "Basic",
+                basePrice: item.estimatedCost,
+              });
+              userCart = userObj.cart;
+              postCart(userId, userCart);
+            }
+          } else {
+            userCart = [
+              {
+                city: item.name,
+                numOfDays: 1,
+                numOfPeople: 1,
+                tier: "Basic",
+                basePrice: item.estimatedCost,
+              },
+            ];
+            postCart(userId, userCart);
+          }
+        })
+        .catch((error) => console.log(error));
+
+      // Post the new user obj to db
+      // show success/error message based on the response
+    } else {
+      //login first
+      displayMessage("Can't access cart, Login First", "warning");
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2500);
+    }
+  });
+
+  content.append(title, rating, price, viewDetailsBtn, AddToCart);
+  card.append(img, content);
+  return card;
+}
+
+// Searching function
+async function fetchBySearch(page) {
+  try {
+    main_container.innerHTML = "";
+    paginationContainer.innerHTML = "";
+    loader.style.display = "block";
+    let url = `${destinationURL}?q=${searchinp.value}&_page=${page}&_limit=${limit}`;
+    let res = await fetch(url);
+    totalCount = res.headers.get("X-Total-Count");
+    numPages = Math.ceil(totalCount / limit);
+    let data = await res.json();
+    console.log(data, searchinp.value);
+    displayDestinations(data);
+    createPaginationBtns(numPages, page);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+// This function filter low to High or High to low
+async function filterPriceSort(str, page) {
+  loader.style.display = "block";
+  main_container.innerHTML = "";
+  paginationContainer.innerHTML = "";
+  let url;
+  if (str == "asc") {
+    url = `${destinationURL}?_sort=estimatedCost&_order=asc&_page=${page}&_limit=12`;
+  } else if (str == "desc") {
+    url = `${destinationURL}?_sort=estimatedCost&_order=desc&_page=${page}&_limit=12`;
+  }
+  try {
+    let res = await fetch(url);
+    totalCount = res.headers.get("X-Total-Count");
+    numPages = Math.ceil(totalCount / limit);
+    let data = await res.json();
+    displayDestinations(data);
+    createFilterPaginationBtns(numPages, str, page);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+// This function creates pagination btns exclusively for filter methods
+function createFilterPaginationBtns(num, str, currNum) {
+  setTimeout(() => {
+    paginationContainer.innerHTML = "";
+    for (let i = 0; i < num; i++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn-small");
+      // console.log(currNum);
+      if (i == currNum - 1) {
+        btn.classList.add("page-active");
+      }
+      btn.innerText = i + 1;
+      btn.addEventListener("click", () => {
+        filterPriceSort(str, i + 1);
+      });
+      paginationContainer.append(btn);
+    }
+  }, 1500);
+}
+
+// This function filters destinations By Country
+async function filterDestinationsByCountry(page) {
+  loader.style.display = "block";
+  main_container.innerHTML = "";
+  paginationContainer.innerHTML = "";
+  let value = filterByCountry.value;
+  if (value == "") {
+    fetchAllDestinations(1);
+  } else {
+    try {
+      let url = `${destinationURL}?country=${value}&_page=${page}&_limit=${limit}`;
+      let res = await fetch(url);
+      totalCount = res.headers.get("X-Total-Count");
+      numPages = Math.ceil(totalCount / limit);
+      let data = await res.json();
+      displayDestinations(data);
+      createPaginationBtnsByCountry(numPages, page);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
+
+// This function create pagination btns exclusively for filter By Country
+function createPaginationBtnsByCountry(num, currNum) {
+  setTimeout(() => {
+    paginationContainer.innerHTML = "";
+    for (let i = 0; i < num; i++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn-small");
+      if (i == currNum - 1) {
+        btn.classList.add("page-active");
+      }
+      btn.innerText = i + 1;
+      btn.addEventListener("click", () => {
+        filterDestinationsByCountry(i + 1);
+      });
+      paginationContainer.append(btn);
+    }
+  }, 1500);
+}
+
+// This function filters data by rating
+async function filterDestinationsByRating(num, page) {
+  loader.style.display = "block";
+  main_container.innerHTML = "";
+  paginationContainer.innerHTML = "";
+  let url;
+  if (num == 5) {
+    url = `${destinationURL}?rating_gte=4&_page=${page}&_limit=${limit}`;
+  } else if (num == 4) {
+    url = `${destinationURL}?rating_gte=3&rating_lte=3.9&_page=${page}&_limit=${limit}`;
+  } else if (num == 3) {
+    url = `${destinationURL}?rating_gte=2&rating_lte=2.9&_page=${page}&_limit=${limit}`;
+  } else if (num == 2) {
+    url = `${destinationURL}?rating_gte=1&rating_lte=1.9&_page=${page}&_limit=${limit}`;
+  }
+  try {
+    let res = await fetch(url);
+    totalCount = res.headers.get("X-Total-Count");
+    numPages = Math.ceil(totalCount / limit);
+    let data = await res.json();
+    console.log(totalCount, numPages);
+    displayDestinations(data);
+    createPaginationBtnsByRating(num, numPages, page);
+  } catch (err) {
+    console.log(err);
+  }
+}
+// This function creates pagination btns exclusively for filter by rating
+function createPaginationBtnsByRating(num, numPages, currNum) {
+  setTimeout(() => {
+    paginationContainer.innerHTML = "";
+    for (let i = 0; i < numPages; i++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn-small");
+      if (i == currNum - 1) {
+        btn.classList.add("page-active");
+      }
+      btn.innerText = i + 1;
+      btn.addEventListener("click", () => {
+        filterDestinationsByRating(num, i + 1);
+      });
+      paginationContainer.append(btn);
+    }
+  }, 1500);
+}
+
+// This function fiters data by price optoin
+async function filterDestinationsByPrice(str, page) {
+  loader.style.display = "block";
+  main_container.innerHTML = "";
+  paginationContainer.innerHTML = "";
+  let url;
+  if (str == "above 7500") {
+    url = `${destinationURL}?estimatedCost_gte=7500&_page=${page}&_limit=${limit}`;
+  } else if (str == "6000-7500") {
+    url = `${destinationURL}?estimatedCost_gte=6000&estimatedCost_lte=7499&_page=${page}&_limit=${limit}`;
+  } else if (str == "4000-6000") {
+    url = `${destinationURL}?estimatedCost_gte=4000&estimatedCost_lte=5999&_page=${page}&_limit=${limit}`;
+  } else if (str == "below 4000") {
+    url = `${destinationURL}?estimatedCost_lte=3999&_page=${page}&_limit=${limit}`;
+  }
+  try {
+    let res = await fetch(url);
+    totalCount = res.headers.get("X-Total-Count");
+    numPages = Math.ceil(totalCount / limit);
+    let data = await res.json();
+    // console.log(totalCount,numPages);
+    displayDestinations(data);
+    createPaginationBtnsByPrice(str, numPages, page);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function createPaginationBtnsByPrice(str, numPages, currNum) {
+  setTimeout(() => {
+    paginationContainer.innerHTML = "";
+    for (let i = 0; i < numPages; i++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn-small");
+      if (i == currNum - 1) {
+        btn.classList.add("page-active");
+      }
+      btn.innerText = i + 1;
+      btn.addEventListener("click", () => {
+        filterDestinationsByPrice(str, i + 1);
+      });
+      paginationContainer.append(btn);
+    }
+  }, 1500);
+}
+
+/******* functinality of destination modal **********/
+
+function createDetails(city) {
+  let detailedObj = {}; //obj containing city atts,foods and activities urls
+  city.attractions.forEach(async (att) => {
+    try {
+      let res = await fetchImages(att, 1);
+      let data = await res.json();
+      let link = data.results[0].urls.regular;
+      detailedObj[att.trim()] = link;
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  city.activity.forEach(async (act, i) => {
+    try {
+      let res = await fetchImages(act, 1);
+      let data = await res.json();
+      let link = data.results[0].urls.regular;
+      detailedObj[act.trim()] = link;
+      if (i == 2) {
+        displayDestinationDetails(detailedObj, city);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
+  // Display the city and detailed obj
+}
+
+//Fetch Photos function
+async function fetchImages(query, num) {
+  try {
+    let key = `3tYuCQraI7s0B2DooME9qes1DqQKGkrF8Fm64SWdKf8`;
+    return await fetch(
+      `https://api.unsplash.com/search/photos?query=${query}&client_id=${key}&per_page=${num}`
+    );
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+// Display City Details
+function displayDestinationDetails(imgObj, city) {
+  console.log(imgObj);
+
+  destinationImgContainer.innerHTML = "";
+  destinationImgRow.innerHTML = "";
+  destinationDescription.innerHTML = "";
+  destinationActivity.innerHTML = "";
+  destinationAttractions.innerHTML = "";
+
+  let mainImage = document.createElement("div");
+  let imgMain = document.createElement("img");
+  imgMain.setAttribute("src", city.img);
+  mainImage.append(imgMain);
+  destinationImgContainer.append(mainImage);
+
+  let urls = fetchImages(city.name, 4);
+  urls
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      data.results.forEach((result) => {
+        let temp = document.createElement("img");
+        temp.setAttribute("src", result.urls.regular);
+        destinationImgRow.append(temp);
+      });
+    });
+
+  let title = document.createElement("h3");
+  title.innerText = city.name;
+  let price = document.createElement("p");
+  price.innerHTML = `It would take about <span>$${city.estimatedCost}</span> per person to travel to ${city.name}`;
+  let country = document.createElement("h5");
+  country.innerText = city.country;
+  let desc = document.createElement("p");
+  desc.innerText = city.description;
+  let rating = document.createElement("div");
+  rating.classList.add("destination-rating");
+  let r = +city.rating;
+  if (r >= 4) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)  `;
+  } else if (r < 4 && r >= 3) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  } else if (r < 3 && r >= 2) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  } else if (r < 2 && r >= 1) {
+    rating.innerHTML = `
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i>
+    <i class="fa-regular fa-star"></i> (<span>${r}</span>)`;
+  }
+  let foods = document.createElement("ul");
+  foods.innerText = "Common Foods items include ";
+  foods.style.color = "var(--white-light)";
+  for (let i = 0; i < city.food.length; i++) {
+    let li = document.createElement("li");
+    li.innerText = `- ${city.food[i]}`;
+    foods.append(li);
+  }
+  let aTC = document.createElement("button");
+  aTC.innerText = "Add To Cart";
+  aTC.classList.add("btn");
+  aTC.addEventListener("click", () => {
+    // get the login user from local storage(the user that is logged in)
+    let userId = JSON.parse(localStorage.getItem("userId"));
+
+    if (userId) {
+      // check if user.cart exists// if not create a new cart and push city to it, else push city to old cart
+      let user = getUser(userId);
+      user
+        .then((data) => {
+          // console.log(data[0]);
+          let userObj = data[0];
+          let userCart;
+          if (userObj.cart) {
+            let flag = false;
+            userObj.cart.forEach((cartItem) => {
+              if (cartItem.city == city.name) flag = true;
+            });
+            if (flag) {
+              // If cartItem does exist display message
+              displayMessage("Already In Cart", "warning");
+            } else {
+              // If cartItem doesn't exist add it to cart
+              userObj.cart.push({
+                city: city.name,
+                numOfDays: 1,
+                numOfPeople: 1,
+                tier: "Basic",
+                basePrice: city.estimatedCost,
+              });
+              userCart = userObj.cart;
+              postCart(userId, userCart);
+            }
+          } else {
+            userCart = [
+              {
+                city: city.name,
+                numOfDays: 1,
+                numOfPeople: 1,
+                tier: "Basic",
+                basePrice: city.estimatedCost,
+              },
+            ];
+            postCart(userId, userCart);
+          }
+        })
+        .catch((error) => console.log(error));
+      // Post the new user obj to db
+      // show success/error message based on the response
+    } else {
+      //login first
+      displayMessage("Can't access cart, Login First", "warning");
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2500);
+    }
+  });
+  destinationDescription.append(
+    title,
+    rating,
+    country,
+    desc,
+    price,
+    foods,
+    aTC
+  );
+
+  let activityDiv = document.createElement("div");
+  let activityTitle = document.createElement("h4");
+  activityTitle.innerText = "Things To Do In This City";
+  city.activity.forEach((activity) => {
+    // console.log(activity,imgObj[activity]);
+    if (imgObj[activity]) {
+      let div = document.createElement("div");
+      div.classList.add("dest-card");
+      let a = document.createElement("a");
+      a.setAttribute("href", imgObj[activity]);
+      a.setAttribute("target", "_blank");
+      let img = document.createElement("img");
+      img.setAttribute("src", imgObj[activity]);
+      a.append(img);
+      let h5 = document.createElement("h5");
+      h5.innerText = activity;
+      div.append(a, h5);
+      activityDiv.append(div);
+    }
+  });
+  if (activityDiv.innerHTML) {
+    destinationActivity.append(activityTitle, activityDiv);
+  }
+
+  let attractionDiv = document.createElement("div");
+  let attTitle = document.createElement("h4");
+  attTitle.innerText = "Don't Forget To Visit These Spots";
+  city.attractions.forEach((att) => {
+    // console.log(typeof att);
+    if (imgObj[att]) {
+      let div = document.createElement("div");
+      div.classList.add("dest-card");
+      let a = document.createElement("a");
+      a.setAttribute("href", imgObj[att]);
+      a.setAttribute("target", "_blank");
+      let img = document.createElement("img");
+      img.setAttribute("src", imgObj[att]);
+      a.append(img);
+      let h5 = document.createElement("h5");
+      h5.innerText = att;
+      div.append(a, h5);
+      attractionDiv.append(div);
+    }
+  });
+  if (attractionDiv.innerHTML) {
+    destinationAttractions.append(attTitle, attractionDiv);
+  }
+}
+
+//******* related function to add to cart*********//
+
+async function getUser(id) {
+  let url = `https://mock-every-sunday-server.onrender.com/users?id=${id}`;
+  try {
+    let res = await fetch(url);
+    return res.json();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function postCart(id, userCart) {
+  let url = `https://mock-every-sunday-server.onrender.com/users/${id}`;
+  try {
+    let res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cart: userCart,
+      }),
+    });
+    let data = await res.json();
+    console.log(data);
+    displayMessage("Added To Cart", "success");
+  } catch (e) {
+    console.log(e);
+    displayMessage("Error", "warning");
+  }
+}
+
+</script>
+</html>

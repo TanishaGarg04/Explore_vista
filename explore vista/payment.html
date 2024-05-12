@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+<title>Payment Gateway</title>
+<link rel="stylesheet" href="main.css">
+<style>
+  body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  animation: slide-in 0.5s ease-out;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus {
+  border-color: #007bff;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#paymentResult {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+  opacity: 0;
+  animation: fade-in 0.5s forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.error {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Payment Details</h2>
+    <form id="paymentForm">
+      <div class="form-group">
+        <label for="cardNumber">Card Number</label>
+        <input type="text" id="cardNumber" placeholder="Enter card number" required>
+      </div>
+      <div class="form-group">
+        <label for="expiryDate">Expiry Date</label>
+        <input type="text" id="expiryDate" placeholder="MM/YY" required>
+      </div>
+      <div class="form-group" id="cvvGroup">
+        <label for="cvv">CVV</label>
+        <input type="text" id="cvv" placeholder="CVV" required>
+      </div>
+      <button type="submit">Pay Now</button>
+    </form>
+    <div id="paymentResult"></div>
+  </div>
+<script>
+  document.getElementById('paymentForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  // Get form values
+  var cardNumber = document.getElementById('cardNumber').value.trim();
+  var expiryDate = document.getElementById('expiryDate').value.trim();
+  var cvv = document.getElementById('cvv').value.trim();
+
+  // Validate card number (simple Luhn algorithm validation)
+  if (!isValidCardNumber(cardNumber)) {
+    // showError('Invalid card number. Please enter a valid card number.');
+    displayMessage('Invalid Card Number. Please enter a valid card number','warning');
+    return;
+  }
+
+  // Validate expiry date
+  if (!isValidExpiryDate(expiryDate)) {
+    // showError('Invalid expiry date. Please enter a valid expiry date (MM/YY).');
+    displayMessage('Invalid expiry date. Please enter a valid expiry date (MM/YY).','warning');
+    return;
+  }
+
+  // Validate CVV (3 or 4 digits)
+  if (!isValidCVV(cvv)) {
+    // showError('Invalid CVV. Please enter a valid CVV (3 or 4 digits).');
+    displayMessage('Invalid CVV. Please enter a valid CVV (3 or 4 digits).','warning');
+    return;
+  }
+
+  // Simulate payment processing
+  setTimeout(function() {
+    // Payment successful
+    // showSuccess('Payment successful!');
+     displayMessage("Payment Successful!",'success');
+     window.location.href = 'thankyou.html';
+  }, 2000);
+});
+
+document.getElementById('cardNumber').addEventListener('input', function() {
+  // Show CVV input field when card number input is focused
+  document.getElementById('cvvGroup').style.display = 'block';
+});
+
+function isValidCardNumber(cardNumber) {
+  // Use a simple Luhn algorithm validation
+  // Here, you can implement more robust validation methods or use a library
+  return /^\d{12}$/.test(cardNumber);
+}
+
+function isValidExpiryDate(expiryDate) {
+  // Validate expiry date format (MM/YY)
+  var pattern = /^(0[1-9]|1[0-2])\/\d{2}$/;
+  if (!pattern.test(expiryDate)) return false;
+
+  // Check if expiry date is not in the past
+  var parts = expiryDate.split('/');
+  var month = parseInt(parts[0], 10);
+  var year = parseInt('20' + parts[1], 10); // Assuming years are in the 21st century
+  var currentDate = new Date();
+  var currentYear = currentDate.getFullYear() % 100;
+  var currentMonth = currentDate.getMonth() + 1; // January is 0
+  return year > currentYear || (year === currentYear && month >= currentMonth);
+}
+
+function isValidCVV(cvv) {
+  // Validate CVV (3 or 4 digits)
+  return /^\d{3,4}$/.test(cvv);
+}
+
+function showError(message) {
+  var paymentResult = document.getElementById('paymentResult');
+  paymentResult.textContent = message;
+  paymentResult.classList.remove('success');
+  paymentResult.classList.add('error');
+}
+
+function showSuccess(message) {
+  var paymentResult = document.getElementById('paymentResult');
+  paymentResult.textContent = message;
+  paymentResult.classList.remove('error');
+  paymentResult.classList.add('success');
+}
+</script>
+<script src="main.js"></script>
+</body>
+</html>
